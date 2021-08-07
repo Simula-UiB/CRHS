@@ -1,6 +1,24 @@
-//! Provide a set of tools to execute operations on matrices
-//! over GF(2). Can be used to find linear dependencies in a system
-//! of equations, solve it and transpose matrices.
+//! Provides some basic operations on matrices over GF(2).
+//!
+//! Some typical use cases:
+//!
+//! * Identify linear dependencies in a System of CRHS equations (return the dependency matrix
+//! of another matrix).
+//! * Resolve and absorb a linear dependency.
+//! * Transpose matrices.
+//! * Left mul two matrices.
+//! * Extract a linear layer from a System description.
+//! * Extract any solution(s) to a matrix and its right-hand side vector.
+//!
+//! More functions are expected to be added when the need arise.
+//!
+//! NOTE: These functions are not optimized! If you see any improvements,
+//! please do not hesitate to send us a pull request.
+//!
+//! NOTE: This module is an easy an quick solution to use case specific needs. As such, it
+//! only contains operations which are actively used in either this library or one of the other
+//! libraries in this workspace. Any suggestions for good pre-existing libraries out there which
+//! is suitable to replace this module is appreciated.
 
 use std::fmt;
 use std::iter;
@@ -8,9 +26,9 @@ use std::slice::Iter;
 
 use vob::{vob, Vob};
 
-/// `matrix!` is a sugar around Matrix::from_rows().
+/// `matrix!` is sugar around Matrix::from_rows().
 ///
-/// It allows for creating easily `Matrix` object from a
+/// Macro to easily create a `Matrix` object from a
 /// `Vec` of `Vob`.
 #[macro_export]
 macro_rules! matrix {
@@ -19,26 +37,26 @@ macro_rules! matrix {
     };
 }
 
-/// We define a Matrix as a `Vec` of Vector of bits. Each row be will a `Vob`.
+/// We define a Matrix as a `Vec` of Vector of bits (`Vob`), where each row be will a `Vob`.
 #[derive(Default, Clone, PartialEq, Eq)]
 pub struct Matrix {
     rows: Vec<Vob>,
 }
 
 impl Matrix {
-    /// Create an all-zero matrix of size (rows,colums) specified.
+    /// Create an all-zero matrix of size (rows,columns) specified.
     pub fn new(rows: usize, columns: usize) -> Matrix {
         let mut m = Matrix {
             rows: Default::default(),
         };
-        for _i in 0..rows {
+        for _ in 0..rows {
             m.rows.push(Vob::from_elem(columns, false));
         }
         m
     }
     /// Create a Matrix from a `Vec` of `Vob`.
     ///
-    /// Will panic if all the `Vob` in `rows` don't have the same length.
+    /// Will panic if any of the `Vob`s in `rows` are of different lengths.
     pub fn from_rows(rows: Vec<Vob>) -> Matrix {
         let row_size = match rows.get(0) {
             Some(row) => row.len(),
@@ -74,7 +92,7 @@ impl Matrix {
     }
 
     /// Return the row at `depth`, or None if depth is out of bounds.
-    /// `Depth` is the number of edges traversed from top row, which means that top row has depth = 0.
+    /// `Depth` is the number of edges traversed from top row, which means that the top row has depth = 0.
     #[inline]
     pub fn get_row(&self, depth: usize) -> Option<&Vob<usize>> {
         self.rows.get(depth)
@@ -85,26 +103,26 @@ impl Matrix {
     pub fn is_empty(&self) -> bool {
         // self.column_size indirectly checks rows as well.
         if self.column_size() == 0 {
-            return true
+            return true;
         }
         false
     }
 
-
-    /// Perform an Self*Right = Matrix op.
-    /// TODO improve comment
+    /// Perform an Self * Right = Matrix op.
+    /// The matrices must be of compatible sizes, as per normal linear algebra rules.
+    ///
+    /// Note that this function is not optimized in any way.
     pub fn left_mul(&self, right: &Matrix) -> Matrix {
         assert_eq!(self.column_size(), right.row_size());
         let right_transposed = transpose(&right);
-        let mut out: Vec<Vob> =  vec![ vob![right_transposed.row_size(); false]; self.row_size()];
+        let mut out: Vec<Vob> = vec![vob![right_transposed.row_size(); false]; self.row_size()];
 
         for (i, row_a) in self.iter_rows().enumerate() {
             for (j, col_r) in right_transposed.iter_rows().enumerate() {
                 let mut row_a = row_a.clone();
                 row_a.and(col_r);
-                let val = row_a.iter_set_bits(..)
-                    .count();
-                    // .fold(false, |acc, bit | val^bit);
+                let val = row_a.iter_set_bits(..).count();
+                // .fold(false, |acc, bit | val^bit);
                 out[i].set(j, val % 2 != 0);
             }
         }
@@ -139,11 +157,10 @@ impl fmt::Debug for Matrix {
     }
 }
 
-/// Create an identity matrix (a matrix where only the [a,a] element are set)
-pub fn identity(rows: usize, columns: usize) -> Matrix {
-    assert_eq!(rows, columns);
-    let mut m = Matrix::new(rows, columns);
-    for i in 0..rows {
+/// Create an identity matrix (a matrix where only the [a,a] elements are set)
+pub fn identity(size: usize) -> Matrix {
+    let mut m = Matrix::new(size, size);
+    for i in 0..size {
         m.rows[i].set(i, true);
     }
     m
@@ -179,7 +196,7 @@ pub fn get_max_set_bit(vob: &Vob) -> Option<usize> {
 ///
 /// -> return the lower part of the identity containing the dependencies
 pub fn extract_linear_dependencies(mut mat: Matrix) -> Matrix {
-    let mut id = identity(mat.row_size(), mat.row_size());
+    let mut id = identity(mat.row_size());
     let mut loop_id = 0;
     for i in (0..mat.row_size()).rev() {
         let mut highest_set_bit = get_max_set_bit(&mat.rows[i]);
