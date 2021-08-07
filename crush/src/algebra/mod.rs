@@ -5,7 +5,8 @@
 use std::fmt;
 use std::iter;
 use std::slice::Iter;
-use vob::Vob;
+
+use vob::{vob, Vob};
 
 /// `matrix!` is a sugar around Matrix::from_rows().
 ///
@@ -71,6 +72,51 @@ impl Matrix {
             None => 0,
         }
     }
+
+    /// Return the row at `depth`, or None if depth is out of bounds.
+    /// `Depth` is the number of edges traversed from top row, which means that top row has depth = 0.
+    #[inline]
+    pub fn get_row(&self, depth: usize) -> Option<&Vob<usize>> {
+        self.rows.get(depth)
+    }
+
+    /// Returns true if rows and/or columns are 0.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        // self.column_size indirectly checks rows as well.
+        if self.column_size() == 0 {
+            return true
+        }
+        false
+    }
+
+
+    /// Perform an Self*Right = Matrix op.
+    /// TODO improve comment
+    pub fn left_mul(&self, right: &Matrix) -> Matrix {
+        assert_eq!(self.column_size(), right.row_size());
+        let right_transposed = transpose(&right);
+        let mut out: Vec<Vob> =  vec![ vob![right_transposed.row_size(); false]; self.row_size()];
+
+        for (i, row_a) in self.iter_rows().enumerate() {
+            for (j, col_r) in right_transposed.iter_rows().enumerate() {
+                let mut row_a = row_a.clone();
+                row_a.and(col_r);
+                let val = row_a.iter_set_bits(..)
+                    .count();
+                    // .fold(false, |acc, bit | val^bit);
+                out[i].set(j, val % 2 != 0);
+            }
+        }
+
+        Matrix::from_rows(out)
+    }
+}
+
+impl Into<Vec<Vob<usize>>> for Matrix {
+    fn into(self) -> Vec<Vob<usize>> {
+        self.rows
+    }
 }
 
 impl fmt::Debug for Matrix {
@@ -95,7 +141,7 @@ impl fmt::Debug for Matrix {
 
 /// Create an identity matrix (a matrix where only the [a,a] element are set)
 pub fn identity(rows: usize, columns: usize) -> Matrix {
-    assert!(rows == columns);
+    assert_eq!(rows, columns);
     let mut m = Matrix::new(rows, columns);
     for i in 0..rows {
         m.rows[i].set(i, true);
