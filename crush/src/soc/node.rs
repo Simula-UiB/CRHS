@@ -11,7 +11,7 @@
 use crate::soc::Id;
 
 /// A Node inside a Binary Decision Diagram
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Node {
     e0: Option<Id>,
     e1: Option<Id>,
