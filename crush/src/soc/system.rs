@@ -21,11 +21,7 @@ use crate::soc::{
 };
 
 /// Cloning a SoC should only happen when the SoC is of a sensible size!
-// /// Currently hiding the clone implementation behind the 'differential' feature
-// /// until I've deiced how to best proceed.
-// #[cfg(feature = "differential")]
 #[derive(Clone)]
-
 /// A system of Bdds providing a number of methods to interact safely with the Bdds it contains
 #[derive(Default)]
 pub struct System {

@@ -1,9 +1,10 @@
 //! Provide the traits to create solving strategies using the apis of `soc::System`.
 
 
-use crate::soc::{system::System, Id};
 use std::io::Error;
 use std::result::Result;
+
+use crate::soc::{Id, system::System};
 
 /// Describe a dependency inside a `System` of `Bdd`. A `Dependency`
 /// is defined as a collection of levels in a `System` which can be add to create a
@@ -80,7 +81,7 @@ pub trait Solver {
     /// joined `Bdd` that compose the dependency.
     fn pick_best_dep<T: Dependency>(deps: Vec<T>) -> (Vec<Id>, Vec<usize>) {
         let (id_dep, _) = deps.iter().enumerate().fold(
-            (0, std::usize::MAX),
+            (0, usize::MAX),
             |(id_dep, min_distance), (i, dep)| {
                 if dep.minimize_distance() < min_distance {
                     (i, dep.minimize_distance())
@@ -107,7 +108,7 @@ pub trait Solver {
         );
         let max_size = system.iter_bdds().fold(0, |size, bdd| {
             if bdd.1.borrow().get_size() > size {
-                (bdd.1.borrow().get_size())
+                bdd.1.borrow().get_size()
             } else {
                 size
             }
@@ -300,7 +301,7 @@ pub trait DroppingSolver {
     fn pick_best_dep<T: Dependency>(deps: &[T]) -> (usize, usize) {
         deps.iter()
             .enumerate()
-            .fold((0, std::usize::MAX), |(id_dep, min_distance), (i, dep)| {
+            .fold((0, usize::MAX), |(id_dep, min_distance), (i, dep)| {
                 if dep.minimize_distance() < min_distance {
                     (i, dep.minimize_distance())
                 } else {
@@ -314,7 +315,7 @@ pub trait DroppingSolver {
     /// joined `Bdd` that compose the independency.
     fn pick_best_indep<T: Independency>(indeps: &[T]) -> (usize, usize) {
         indeps.iter().enumerate().fold(
-            (0, std::usize::MAX),
+            (0, usize::MAX),
             |(id_indep, min_distance), (i, indep)| {
                 if indep.minimize_distance() < min_distance {
                     (i, indep.minimize_distance())
@@ -369,7 +370,7 @@ pub trait DroppingSolver {
         );
         let max_size = system.iter_bdds().fold(0, |size, bdd| {
             if bdd.1.borrow().get_size() > size {
-                (bdd.1.borrow().get_size())
+                bdd.1.borrow().get_size()
             } else {
                 size
             }

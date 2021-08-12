@@ -90,8 +90,6 @@ impl LinEq {
 }
 
 /// Cloning a Shard should only happen when the Shard is of a sensible size.
-/// Currently hiding the clone implementation behind the 'differential' feature.
-#[cfg(feature = "differential")]
 #[derive(Clone)]
 /// A Binary Decision Diagram (see module documentation for more details)
 #[derive(Default)]
