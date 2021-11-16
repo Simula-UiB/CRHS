@@ -125,7 +125,7 @@ impl MiniAES4x4 {
         bit_vector_xoring(in_bits, round_key)
     }
 
-    fn make_round_keys(&self, mut key: Vec<Bit>) -> Vec<Vec<Bit>> {
+    fn make_round_keys(&self, key: Vec<Bit>) -> Vec<Vec<Bit>> {
         assert_eq!(key.len(), self.key_length);
         let mut round_keys = Vec::with_capacity(self.n_rounds);
         let round_constants = vec![

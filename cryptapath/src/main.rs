@@ -104,7 +104,7 @@ fn main() {
                 }
             };
             for sol in sols.iter_mut() {
-                sol.split_off(cipher.key_length());
+                let _ = sol.split_off(cipher.key_length());
                 let mut binary_string_sol = String::new();
                 for var in sol.iter() {
                     match var {
@@ -206,7 +206,7 @@ fn main() {
             )
             .unwrap();
             for sol in sols.iter_mut() {
-                sol.split_off(hash.message_length());
+                let _ = sol.split_off(hash.message_length());
                 let mut binary_string_sol = String::new();
                 for var in sol.iter() {
                     match var {

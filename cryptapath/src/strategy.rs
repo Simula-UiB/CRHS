@@ -339,7 +339,7 @@ impl Solver for UpwardSolver {
         );
         let max_size = system.iter_bdds().fold(0, |size, bdd| {
             if bdd.1.borrow().get_size() > size {
-                (bdd.1.borrow().get_size())
+                bdd.1.borrow().get_size()
             } else {
                 size
             }
@@ -581,7 +581,7 @@ impl DroppingSolver for UpwardDroppingSolver {
         ;
         let max_size = system.iter_bdds().fold(0, |size, bdd| {
             if bdd.1.borrow().get_size() > size {
-                (bdd.1.borrow().get_size())
+                bdd.1.borrow().get_size()
             } else {
                 size
             }

@@ -82,7 +82,7 @@ pub fn build_system_cipher(cipher: &dyn Cipher) -> (Vec<Bit>, Vec<Bit>, System) 
     (message_bits, output, build_system_from_spec(system_spec))
 }
 
-pub fn get_random_sponge_output(hash: &dyn SpongeHash) -> (Vec<Bit>) {
+pub fn get_random_sponge_output(hash: &dyn SpongeHash) -> Vec<Bit> {
     let random_preimage = random_bits(hash.message_length());
     hash.hash(random_preimage)
 }
@@ -138,7 +138,7 @@ pub fn get_random_plaintext_ciphertext_with_partial_key(
 pub fn get_sponge_output_with_partial_preimage(
     hash: &dyn SpongeHash,
     partial_preimage: Vec<Bit>,
-) -> (Vec<Bit>) {
+) -> Vec<Bit> {
     assert_eq!(
         hash.message_length(),
         partial_preimage.len(),
