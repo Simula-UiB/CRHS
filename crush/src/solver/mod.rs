@@ -73,7 +73,7 @@ pub trait Solver {
             Self::feedback(self, system);
             deps = T::extract(system);
         }
-        Ok(system.get_solutions())
+        Ok(system.calculate_solutions())
     }
 
     /// Find the `Dependency` that should be resolved next and return the order in which
@@ -232,7 +232,7 @@ pub trait DroppingSolver {
             deps = D::extract(system);
             indeps = I::extract(system, forbid_dropping);
         }
-        Ok(system.get_solutions())
+        Ok(system.calculate_solutions())
     }
 
     /// Describe the way an `Independency` should be resolved.

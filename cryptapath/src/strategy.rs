@@ -2,14 +2,15 @@
 //! strategies used to solve a system of CRHS.  
 
 
-use crush::{
-    algebra,
-    soc::{system::System, Id},
-    solver::{Dependency, DroppingSolver, Independency, Solver},
-};
 use std::cell::Cell;
 use std::io::Error;
 use std::result::Result;
+
+use crush::{
+    algebra,
+    soc::{Id, system::System},
+    solver::{Dependency, DroppingSolver, Independency, Solver},
+};
 
 /// Describe the informations about a `Bdd` involved in a `NodeRankedDependency` or a `NodeRankedIndependency`.
 #[derive(Clone, Debug)]
@@ -281,7 +282,7 @@ pub fn find_best_bdd_pattern_dep(deps: &[NodeRankedDependency]) -> Vec<NodeRanke
         patterns
             .iter()
             .enumerate()
-            .fold((0, std::usize::MAX), |(best_p, min_weigth), (i, p)| {
+            .fold((0, usize::MAX), |(best_p, min_weigth), (i, p)| {
                 let w = p.weigth / p.deps.len();
                 if w < min_weigth {
                     (i, w)
@@ -321,7 +322,7 @@ impl UpwardSolver {
             self.remaining = deps.len();
             Self::feedback(self, system);
         }
-        Ok(system.get_solutions())
+        Ok(system.calculate_solutions())
     }
 }
 
@@ -560,7 +561,7 @@ impl UpwardDroppingSolver {
             self.remaining = deps.len();
             Self::feedback(self, system);
         }
-        Ok(system.get_solutions())
+        Ok(system.calculate_solutions())
     }
 }
 

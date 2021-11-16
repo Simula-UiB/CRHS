@@ -402,7 +402,7 @@ impl System {
     /// find the solutions.
     ///
     /// Will use the `algebra::solve_linear_system` to find the different solutions.
-    pub fn get_solutions(&mut self) -> Vec<Vec<Option<bool>>> {
+    pub fn calculate_solutions(&mut self) -> Vec<Vec<Option<bool>>> {
         let keys: Vec<Id> = self.bdds.keys().cloned().collect();
         let remaining_id = match keys.len() {
             // everything in linbank
