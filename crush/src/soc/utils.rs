@@ -2,19 +2,19 @@
 //! print a Bdd to .dot format for visualization, print systems to .bdd format
 //! and needed structures for it.
 
+use std::collections::HashSet;
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Read, stdout, Write};
+use std::path::PathBuf;
+use std::str::FromStr;
+
 use nom::digit;
 use nom::types::CompleteStr;
 
 use crate::soc::{
-    system::System,
     bdd::Bdd,
-    Id};
-
-use std::str::FromStr;
-use std::fs::File;
-use std::io::{Read, BufReader,BufWriter,Write};
-use std::path::PathBuf;
-use std::collections::HashSet;
+    Id,
+    system::System};
 
 /// A specification of a `Node` inside a Bdd
 #[derive(Debug,Clone)]
@@ -84,6 +84,7 @@ impl LevelSpec {
     pub fn flip_nodes_edges(&mut self) {
         self.rhs.iter_mut().map(|node| node.flip_edge()).collect()
     }
+
 }
 
 /// A specification of Bdd
@@ -149,10 +150,19 @@ pub fn build_system_from_spec(mut spec: SystemSpec) -> System {
 /// `e0` and `e1` specs. All the id of the nodes are then reset to initialize `next_id` of the
 /// `Bdd`. Finally we remove any jumping edges by calling `add_same_edge_node_at_level` on all the
 /// levels of the `Bdd`.
+/// WARNING! There is an unconfirmed case which indicates that the removal of jumping edges does NOT
+/// work as intended! This will be investigated when I get the time.
+// FIXME, the case referred to is the original PRINCE or LowMC S-box used in our differential
+// experiments. It was built from a .bdd file, and we did had to change the .bdd to not include
+// jumping edges b/c they caused us trouble. I was not aware of the fact that this fn is supposed
+// to handle jumping edges at the time, otherwise I would have looked into it then. Maybe it's a
+// too early short-circuit again?
+// Of course, it may also have been some other error on our part, which is why this case is
+// "unconfirmed".
 pub fn build_bdd_from_spec(spec: &mut BddSpec, nvar: usize) -> Bdd {
     let mut bdd = Bdd::new();
     bdd.set_id(spec.id);
-    let next_id = spec.levels.iter().fold(0,|last_id,level| 
+    let next_id = spec.levels.iter().fold(0,|last_id,level|
     {
         let level_id =level.rhs.iter().fold(0,|last_id_level,node| {
             if *node.id > last_id_level {
@@ -312,72 +322,14 @@ pub fn parse_system_spec_from_file(path: &PathBuf) -> SystemSpec {
     result.1
 }
 
-/// Write .dot langage representation of the given bdd to a file at path
+/// Write .dot language representation of the given bdd to a file at path
 pub fn print_bdd_to_graphviz(bdd: &Bdd, path:&PathBuf) {
     let write_file = File::create(path).unwrap();
     let mut writer = BufWriter::new(&write_file);
-    writeln!(&mut writer, "digraph \"DD\" {{").unwrap();
-    writeln!(&mut writer, "size = \"7.5,10\"").unwrap();
-    writeln!(&mut writer, "center = true;").unwrap();
-    writeln!(&mut writer, "edge [dir = none];").unwrap();
-    writeln!(&mut writer, "{{ node [shape = plaintext];").unwrap();
-    writeln!(&mut writer, "edge [style = invis];").unwrap();
-    writeln!(&mut writer, "\"CONST NODES\" [style = invis];").unwrap();
-    for (i,level) in bdd.iter_levels().enumerate() {
-        write!(&mut writer, "\"{}. ",i).unwrap();
-        if level.iter_set_lhs().count() == 0 {
-            write!(&mut writer, "0").unwrap();
-        } else {
-            for (j,bit) in level.iter_set_lhs().enumerate() {
-                if j > 0 {
-                    write!(&mut writer, " + ").unwrap();
-                }
-                write!(&mut writer, "x{}",bit).unwrap();
-            }
-        }
-        write!(&mut writer, "\" -> ").unwrap();
-        if i == bdd.iter_levels().count()-2{
-            break;
-        }
-    }
-    writeln!(&mut writer, "\"CONST NODES\";\n}}").unwrap();
-    for (i,level) in bdd.iter_levels().enumerate() {
-        write!(&mut writer, "{{ rank = same; \"").unwrap();
-        if level.iter_set_lhs().count() == 0 {
-            write!(&mut writer, "{}. 0",i).unwrap();
-        } else {
-            for (j,bit) in level.iter_set_lhs().enumerate() {
-                if j > 0 {
-                    write!(&mut writer, " + ").unwrap();
-                }
-                write!(&mut writer, "{}. x{}",i,bit).unwrap();
-            }
-        }
-        writeln!(&mut writer, "\";").unwrap();
-        for (id,_) in level.iter_nodes(){
-            writeln!(&mut writer, "\"{}\";",*id).unwrap();
-        }
-        writeln!(&mut writer, "}}").unwrap();
-        if i == bdd.iter_levels().count()-2{
-            break;
-        }
-    }
-    writeln!(&mut writer, "{{ rank = same; \"CONST NODES\";").unwrap();
-    writeln!(&mut writer, "{{ node [shape = box]; \"{}\";",*bdd.iter_levels().last().unwrap().iter_nodes().last().unwrap().0).unwrap();
-    writeln!(&mut writer, "}}").unwrap();
-    writeln!(&mut writer, "}}").unwrap();
-    for level in bdd.iter_levels() {
-        for (id,node) in level.iter_nodes() {
-            if let Some(e0) = node.get_e0() {
-                writeln!(&mut writer, "\"{}\" -> \"{}\" [style = dashed];",*id,*e0).unwrap();
-            }
-            if let Some(e1) = node.get_e1() {
-                writeln!(&mut writer, "\"{}\" -> \"{}\";",*id,*e1).unwrap();
-            }
-        }
-    }
-    writeln!(&mut writer, "\"{}\" [label = \"T\"];",*bdd.iter_levels().last().unwrap().iter_nodes().last().unwrap().0).unwrap();
-    writeln!(&mut writer, "}}").unwrap();
+
+    to_dot_format(&bdd, &mut writer);
+
+    writer.flush().expect("Failed to write to file");
 }
 
 /// Write .bdd representation of a bdd to a Buffered write of a file
@@ -415,9 +367,129 @@ pub fn print_system_to_file(system: &System, path: &PathBuf){
     let mut ids = Vec::new();
     for bdd in system.iter_bdds() {
         ids.push(bdd.0);
-    }
+}
     ids.sort();
     for id in ids {
         print_bdd_to_file_format(&system.get_bdd(*id).unwrap().borrow(), &mut writer);
     }
 }
+
+/// Draw a graph representation of the Shard, using GraphViz.
+/// The output format is PDF.
+///
+/// **NOTE:** Requires that `GraphViz` is installed!
+///
+/// **WARNING!** The resulting output file may be very large!
+//FIXME unstable, does not always print...
+pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) {
+    use std::process::{Command, Stdio};
+    use std::fs::OpenOptions;
+    use std::thread;
+    use std::time::Duration;
+
+    let mut args = vec!["-Tpdf",];
+    let mut path = path.clone();
+    path.set_extension("pdf");
+
+    println!("Path: {}", path.display());
+    let opath = format!("-o{}", path.display().to_string());
+    args.push(&opath);
+
+    OpenOptions::new().write(true).create(true).open(&path).unwrap();
+    println!("Args: {:?}", &args);
+
+    let mut dot = Command::new("dot")
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("failed to execute process");
+
+    {
+        let stdin = dot.stdin.as_mut().expect("Failed to open stdin");
+        let mut writer = BufWriter::new(stdout());
+
+
+        to_dot_format(&shard, &mut writer);
+        stdin.write(writer.buffer()).expect("Failed to write to stdin");
+
+        while dot.try_wait().unwrap().is_none() {
+            println!("Sleeping...");
+            thread::sleep(Duration::from_millis(2000));
+        };
+
+        println!("Done writing!");
+
+    }
+
+
+}
+
+/// Write .dot language representation of the given bdd to a file at path
+pub fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
+
+    writeln!(writer, "digraph \"DD\" {{").unwrap();
+    writeln!(writer, "size = \"7.5,10\"").unwrap();
+    writeln!(writer, "center = true;").unwrap();
+    writeln!(writer, "edge [dir = none];").unwrap();
+    writeln!(writer, "{{ node [shape = plaintext];").unwrap();
+    writeln!(writer, "edge [style = invis];").unwrap();
+    writeln!(writer, "\"CONST NODES\" [style = invis];").unwrap();
+    for (i,level) in shard.iter_levels().enumerate() {
+        write!(writer, "\"{}. ",i).unwrap();
+        if level.iter_set_lhs().count() == 0 {
+            write!(writer, "0").unwrap();
+        } else {
+            for (j,bit) in level.iter_set_lhs().enumerate() {
+                if j > 0 {
+                    write!(writer, " + ").unwrap();
+                }
+                write!(writer, "x{}",bit).unwrap();
+            }
+        }
+        write!(writer, "\" -> ").unwrap();
+        if i == shard.iter_levels().count()-2{
+            break;
+        }
+    }
+    writeln!(writer, "\"CONST NODES\";\n}}").unwrap();
+    for (i,level) in shard.iter_levels().enumerate() {
+        write!(writer, "{{ rank = same; \"").unwrap();
+        if level.iter_set_lhs().count() == 0 {
+            write!(writer, "{}. 0",i).unwrap();
+        } else {
+            for (j,bit) in level.iter_set_lhs().enumerate() {
+                if j > 0 {
+                    write!(writer, " + ").unwrap();
+                }
+                write!(writer, "{}. x{}",i,bit).unwrap();
+            }
+        }
+        writeln!(writer, "\";").unwrap();
+        for (id,_) in level.iter_nodes(){
+            writeln!(writer, "\"{}\";",*id).unwrap();
+        }
+        writeln!(writer, "}}").unwrap();
+        if i == shard.iter_levels().count()-2{
+            break;
+        }
+    }
+    writeln!(writer, "{{ rank = same; \"CONST NODES\";").unwrap();
+    writeln!(writer, "{{ node [shape = box]; \"{}\";",*shard.iter_levels().last().unwrap().iter_nodes().last().unwrap().0).unwrap();
+    writeln!(writer, "}}").unwrap();
+    writeln!(writer, "}}").unwrap();
+    for level in shard.iter_levels() {
+        for (id,node) in level.iter_nodes() {
+            if let Some(e0) = node.get_e0() {
+                writeln!(writer, "\"{}\" -> \"{}\" [style = dashed];",*id,*e0).unwrap();
+            }
+            if let Some(e1) = node.get_e1() {
+                writeln!(writer, "\"{}\" -> \"{}\";",*id,*e1).unwrap();
+            }
+        }
+    }
+    writeln!(writer, "\"{}\" [label = \"T\"];",*shard.iter_levels().last().unwrap().iter_nodes().last().unwrap().0).unwrap();
+    writeln!(writer, "}}").unwrap();
+}
+
+
