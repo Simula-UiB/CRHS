@@ -6,18 +6,25 @@
 //! in order to remove all the linear dependencies among the levels of the different `Bdd`s so
 //! the solutions to the system of equations it represents can be extracted.
 
+use std::cell::RefCell;
+use std::fmt;
+use std::io::{self, Error, ErrorKind};
+use std::result::Result;
+
+use vob::Vob;
+
+use crate::AHashMap;
 use crate::algebra;
 use crate::soc::{
     bdd::{Bdd, LinEq},
     Id,
 };
-use crate::AHashMap;
 
-use std::cell::RefCell;
-use std::fmt;
-use std::io::{self, Error, ErrorKind};
-use std::result::Result;
-use vob::Vob;
+/// Cloning a SoC should only happen when the SoC is of a sensible size!
+// /// Currently hiding the clone implementation behind the 'differential' feature
+// /// until I've deiced how to best proceed.
+// #[cfg(feature = "differential")]
+#[derive(Clone)]
 
 /// A system of Bdds providing a number of methods to interact safely with the Bdds it contains
 #[derive(Default)]
@@ -122,7 +129,7 @@ impl System {
         }
         if self.get_bdd(bdd.get_id()).is_ok() {
             return Err(Error::new(
-                ErrorKind::InvalidData,
+                ErrorKind::AlreadyExists,
                 "A Bdd with the same id is already in the system",
             ));
         }
@@ -137,7 +144,7 @@ impl System {
         match self.bdds.get(&bdd_id) {
             Some(bdd) => Ok(bdd),
             None => Err(Error::new(
-                ErrorKind::InvalidData,
+                ErrorKind::NotFound,
                 format!("id {} not present in system", bdd_id),
             )),
         }
@@ -161,7 +168,7 @@ impl System {
     /// in the `System` and all the `LinEq` of the `LinBank`.
     ///
     /// Will return an error if one of the `Bdd` has a different `nvar` from the `System`.
-    pub fn merge(&mut self, system: &mut System) -> Result<(()), Error> {
+    pub fn merge(&mut self, system: &mut System) -> Result<(), Error> {
         for bdd in system.drain_bdds() {
             // TODO -> error handling should take into account middle crash and rollback system to its initial state
             // to avoid half merging if one bdd have a different nvar
