@@ -25,14 +25,20 @@
 //! - removing the dead end nodes (skip the last level)
 //! - removing the orphan nodes (skip the first level)
 
-use crate::soc::node::Node;
-use crate::soc::{level::Level, Id};
-use crate::{AHashMap, AHashSet};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::BuildHasherDefault;
-use vob::Vob;
+
 use num_bigint::ToBigUint;
+use vob::Vob;
+
+use crate::{AHashMap, AHashSet};
+use crate::soc::{Id, level::Level};
+use crate::soc::node::Node;
+
+#[allow(unused_variables)] // FIXME remove unused variables when ready
+#[cfg(feature = "differential")]
+pub mod differential;
 
 /// A `LinEq` is a linear equation found in the BDD.
 /// A level which has only outgoing 1-edges or 0-edges
@@ -83,6 +89,10 @@ impl LinEq {
     }
 }
 
+/// Cloning a Shard should only happen when the Shard is of a sensible size.
+/// Currently hiding the clone implementation behind the 'differential' feature.
+#[cfg(feature = "differential")]
+#[derive(Clone)]
 /// A Binary Decision Diagram (see module documentation for more details)
 #[derive(Default)]
 pub struct Bdd {
@@ -133,10 +143,16 @@ impl Bdd {
         self.levels.push(level);
     }
 
-    /// Return an iterator over the levels of the `Bdd`
+    /// Return an iterator over the levels of the `Bdd`.
+    /// This includes the sink level.
     #[inline]
     pub fn iter_levels(&self) -> std::slice::Iter<Level> {
         self.levels.iter()
+    }
+
+    /// FIXME keep or remove? Why wasn't this a fn in the first place? Maybe for a good reason?
+    pub fn level(&self, depth: usize) -> Option<&Level> {
+        self.levels.get(depth)
     }
 
     /// Return a draining iterator over the levels of the `Bdd`
@@ -145,7 +161,8 @@ impl Bdd {
         self.levels.drain(..)
     }
 
-    /// Return the number of levels of the `Bdd`
+    /// Return the number of levels of the `Bdd`.
+    /// This includes the sink level.
     #[inline]
     pub fn get_levels_size(&self) -> usize {
         self.levels.len()
@@ -179,6 +196,18 @@ impl Bdd {
     /// See the Level documentation for more information
     pub fn set_lhs_level(&mut self, level_index: usize, vars: Vec<usize>, var_len: usize) {
         self.levels[level_index].set_lhs(vars, var_len);
+    }
+
+    /// Call the `set_lhs_from_vob` function on the level specified by `level_index` with the
+    /// given parameters.
+    /// See the Level documentation for more information
+    pub fn set_lhs_level_from_vob(&mut self, level_index: usize, lhs: Vob) {
+        self.levels[level_index].set_lhs_from_vob(lhs);
+    }
+
+    /// Return the LHS of the level specified by `level_index`.
+    pub fn get_lhs_level(&self, level_index: usize) -> Vob {
+        self.levels[level_index].get_lhs()
     }
 
     /// Repeatedly calls the `add_node` function on the level specified by the `level_index`
@@ -228,7 +257,7 @@ impl Bdd {
     /// be removed.
     ///
     /// Short circuited -> will exit when no dead end was found in the previous level
-    fn remove_all_dead_ends_start(&mut self, start: usize) {
+    pub fn remove_all_dead_ends_start(&mut self, start: usize) {
         for i in (0..=start).rev() {
             let mut to_remove: AHashSet<Id> = AHashSet::with_capacity_and_hasher(
                 self.levels[i].get_nodes_len(),
@@ -273,7 +302,7 @@ impl Bdd {
     /// We then iterate through every level, removing any `node` which is not in the set and adding the remaining outgoing edges to the set.
     /// `start` should be the level where you want the removing to begin and therefore never equal to `0`
     /// Short circuited -> will exit when no orphans was found in the previous level
-    fn remove_orphans_start(&mut self, start: usize) {
+    pub fn remove_orphans_start(&mut self, start: usize) {
         assert!(start != 0);
         let mut parents: AHashSet<Id> = AHashSet::with_capacity_and_hasher(
             self.levels[start - 1].get_nodes_len(),
@@ -853,7 +882,8 @@ impl Bdd {
         paths
     }
 
-    /// Count the number of paths inside a `Bdd`.  The return value is a BigUint, as the number of paths may be huge.
+    /// Count the number of paths inside a `Bdd`.  The return value is a BigUint, as the number of
+    /// paths may be huge.
     ///
     /// To count the number of paths we go from bottom to top.
     ///
@@ -872,7 +902,7 @@ impl Bdd {
             return 0.to_biguint().unwrap();
         }
         for level in self.iter_levels().rev() {
-            let mut current_level_weigths = AHashMap::with_hasher(Default::default());
+            let mut current_level_weights = AHashMap::with_hasher(Default::default());
             for (id, node) in level.iter_nodes() {
                 let weight0 = match node.get_e0() {
                     Some(e0_id) => match previous_level_weigths.get(&e0_id) {
@@ -900,9 +930,9 @@ impl Bdd {
                     },
                     None => 0.to_biguint().unwrap(),
                 };
-                current_level_weigths.insert(*id, weight0+weight1);
+                current_level_weights.insert(*id, weight0+weight1);
             }
-            previous_level_weigths = current_level_weigths;
+            previous_level_weigths = current_level_weights;
         }
         previous_level_weigths.iter().next().unwrap().1.clone()
     }
