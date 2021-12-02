@@ -1,0 +1,21 @@
+
+[package]
+name = "pathfinder"
+version = "0.1.0"
+authors = ["JPI <jpindroy@outlook.com>"]
+edition = "2018"
+
+[dependencies]
+crush = {path = "../crush", features = ["differential",] }
+vob = "2.0.2"
+console = { version = "0.13.0", optional = false }
+num-bigint = "0.3.0"
+num-traits = { version = "0.2.14", optional = false }
+
+# to be moved into dev deps?
+indicatif = "^0.15.0"
+
+
+[profile.release]
+debug-assertions = true
+overflow-checks = true

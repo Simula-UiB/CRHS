@@ -3,4 +3,5 @@
 members = [
 	"crush",
 	"cryptapath",
+	"pathfinder",
 ]
