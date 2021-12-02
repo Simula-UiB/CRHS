@@ -1,0 +1,19 @@
+[package]
+name = "soccs"
+version = "0.1.0"
+authors = ["JPI <jpindroy@outlook.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fnv = "*"
+itertools = "*"
+vob = "2.0.2"
+structopt = "0.3"
+indicatif = "^0.15.0"
+console = "0.13.0"
+num-bigint = { version = "0.3.0", optional = false }
+
+pathfinder = {path = "../pathfinder" }
+crush = {path = "../crush", features = ["differential",] }
