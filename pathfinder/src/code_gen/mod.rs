@@ -13,7 +13,7 @@ pub trait SBoxHandler {
 
     fn sbox_size_out(&self, round: usize, pos: usize) -> usize;
 
-    // prefix bt to remind us that this generic shard is based on a bt. Even though the generic shard
+    // prefix 'bt' to remind us that this generic shard is based on a BT. Even though the generic shard
     // itself shouldn't behave any different than any other generic shard, it helps remind us of the
     // context we're in. (We don't want something that isn't based on a base table ;) ).
     fn bt_generic_shard(&self, round: usize, pos: usize) -> GenericShard;

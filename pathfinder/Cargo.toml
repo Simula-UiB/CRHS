@@ -14,8 +14,3 @@ num-traits = { version = "0.2.14", optional = false }
 
 # to be moved into dev deps?
 indicatif = "^0.15.0"
-
-
-[profile.release]
-debug-assertions = true
-overflow-checks = true
