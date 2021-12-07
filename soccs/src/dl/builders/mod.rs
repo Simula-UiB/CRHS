@@ -3,7 +3,6 @@ use vob::Vob;
 use pathfinder::code_gen::{LLHandler, SBoxHandler};
 use pathfinder::code_gen::gsf::GenericShard;
 
-pub mod llb;
 pub mod cg;
 
 
