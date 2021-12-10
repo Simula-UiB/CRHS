@@ -1,34 +1,32 @@
+use std::fmt::Debug;
 use std::num::NonZeroUsize;
 use std::ops::Range;
 use std::sync::Arc;
+use std::sync::mpsc::Sender;
 
+pub use bt::{BaseTable, bthandler_trait::BTHandler};
 use crush::algebra::Matrix;
 use crush::soc::bdd::Bdd as Shard;
 use crush::soc::bdd::differential::{Depth, PPFactory, StyledProgressBar};
-use crush::soc::bdd::differential::wd::{Node2NodeDistribution, WDPresence, WDLevel, EndNodeDist};
+use crush::soc::bdd::differential::wd::{EndNodeDist, Node2NodeDistribution, WDLevel, WDPresence};
 use crush::soc::bdd::differential::wd::NWDistribution;
 use crush::soc::Id;
+pub use hull_calc::{DisplayResult, ProcessedResult};
+pub use logging::TraceLogger;
+pub use sess_handling::{InnerWeight, SessEstimate};
 
 use crate::code_gen::SBoxHandler;
+use crate::diff_solver::post_processing_v5::hull_calc::{BuildMode, ResultSectionBuilder};
 // todo fix reference to old mod
 use crate::diff_solver::post_processing_v5::logging::{Cache, LogType};
 use crate::diff_solver::post_processing_v5::sess_handling::*;
-use crate::diff_solver::post_processing_v5::hull_calc::{ResultSectionBuilder, BuildMode};
-
-pub use hull_calc::{ProcessedResult, DisplayResult};
 
 mod sess_handling;
 mod logging;
 mod utils;
 mod bt;
 mod hull_calc;
-// mod hull_calc_v2;
 
-pub use bt::{BaseTable, bthandler_trait::BTHandler};
-pub use sess_handling::{SessEstimate, InnerWeight};
-pub use logging::TraceLogger;
-use std::fmt::Debug;
-use std::sync::mpsc::Sender;
 
 pub struct SolvedSocMeta {
     active_area: Range<usize>,

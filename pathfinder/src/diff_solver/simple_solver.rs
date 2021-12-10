@@ -19,8 +19,6 @@ use super::meta::{AbsorbRec, JoinRec, PreAbsorbRec};
 use super::meta::CoreOps::*;
 use super::meta::Ops::*;
 
-// use crate::diff_solver::post_processing_v2::PostProcessing;
-
 pub type Depth = usize;
 
 #[allow(dead_code)]
@@ -116,28 +114,6 @@ impl<F: SPFactory + PPFactory + Clone + Debug> SimpleSolver<F> {
             round_index += 1;
         }
         self.join_progress.finish_with_message("All Shards are joined into Master");
-
-        // TODO some of this info may be of interest. Figure out how to keep it and how to present it.
-        // let arena = self.master().identify_trails_and_weights(
-        //     self.active_area(), self.step);
-        // self.master().map_highest_lsb(&arena);
-        // let elapsed = start.elapsed();
-        //
-        // println!("\n{:=^150}", &format!(" Time spent : {:?} seconds ", elapsed));
-        // println!("\n{:=^150}", "");
-        // println!("{:=^150}", style(" DONE ").green());
-        // println!("{:=^150}", "");
-        //
-        // println!("Test path finder");
-        // // for (i, (lhs, edge)) in self.master()
-        // //     .extract_an_lsb_path(&self.active_area(), self.step)
-        // //     .iter().enumerate() {
-        // //
-        // //     println!("{: >4}: {} => {}", i, &format!("{:?}",lhs), *edge as u8);
-        // // }
-        // // println!("{}", self.master().extract_a_sol(&self.active_area(), self.step));
-        // println!("Sol as hex:\n{}" ,self.master().stringify_sol_as_hex(&self.active_area(), self.step));
-
     }
 
     pub fn soc(&self) -> &System {
@@ -350,7 +326,6 @@ impl<F: SPFactory + PPFactory + Clone + Debug> SimpleSolver<F> {
 
             let mut prune_rec = Librarian::<F>::record_prune_helper();
 
-            // let prune_progress:<F as PPFactory>::ProgressBar = PPFactory::new_prune_progress(
             let prune_progress = PPFactory::new_progress_bar(
                 &self.progress_arena,
                 self.master().get_size().checked_sub(soft_lim).unwrap_or(42) as u64);
@@ -591,8 +566,8 @@ impl<F: SPFactory + PPFactory + Clone + Debug> SimpleSolver<F> {
     /// Returns None if no linear dependencies are present.
     fn next_to_resolve(&self, matrix: Matrix) -> Vob<usize> {
 
-        let mut best_dep: Depth = Depth::max_value();
-        let mut shortest_distance = usize::max_value();
+        let mut best_dep: Depth = Depth::MAX;
+        let mut shortest_distance = usize::MAX;
         // Intentionally iterates from low depth to high depth: Avoids the higher one being
         // "involved" in two deps.
         for (i, row) in matrix.iter_rows().enumerate() {
