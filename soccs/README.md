@@ -8,9 +8,9 @@
 ## About
 __SOCCs__ is a way to quickly get started with differential and linear analysis of
 SPN-based ciphers using Compressed Right-Hand Side equations (`CRHS equations`). 
-The library already has ?? ciphers supported, and also provides a mean to analyse your own
-cipher by the means of the `Cipher` trait. To get started with your own cipher, all you
-need is to implement the required trait.
+The library already has 24 ciphers (including variations of same ciphers) supported, and
+also provides a mean to analyse your own cipher by the means of the `Cipher` trait. To get 
+started with your own cipher, all you need is to implement the required trait.
 
 **WARNING:** This library was developed in an academic context and no part of 
 this code should be use in any production system.

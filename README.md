@@ -5,10 +5,6 @@
     <a href="https://github.com/Simula-UiB/CryptaPath/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
-***If you came here looking for PathFinder***: PathFinder is in the process of being made readable for outsiders, and will
-be present here as soon as possible. For inquires on the process, please email johnpetter@simula.no, and I will answer
-as soon as possible.
-
 ---
 **CRHS** consists of the two research projects **CryptaPath** and **PathFinder**. At the core of these projects are the
 Compressed Right-Hand Side (CRHS) equations; a datastructure which may be viewed as a derivation of Binary Decision 
@@ -22,8 +18,8 @@ search for good linear and differential hulls.
 Despite that CRHS equations currently are solely used for cryptanalysis, we believe that some concepts introduced
 by CRHS equations may be relevant for fields where BDDs are traditionally used. For example, it may be of interest that 
 CRHS equations offer a solution to having linear dependencies in the decision variables of BDDs, meaning that we may 
-move more towards [Akers'](https://doi.org/10.1109/TC.1978.1675141) [2] "definition" of a BDD. It would be interesting to further explore the
-eligibility of using CRHS equations in traditional fields of BDDs.
+move more towards [Akers'](https://doi.org/10.1109/TC.1978.1675141) [2] usage/meaning of a BDD. It would be interesting
+to further explore the eligibility of using CRHS equations in traditional fields of BDDs.
 
 ---
 **WARNING:** This tool was developed in an academic context and no part of this code should be used in any production 
@@ -33,18 +29,39 @@ system. In particular the implementations of cryptosystems in this tool are not 
 
 CryptaPath is licensed under the MIT License.
 
-* MIT license ([LICENSE](../LICENSE) or http://opensource.org/licenses/MIT)
+* MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)
 
 
 ## Overview
 
-**CRHS** consists of four libraries: `CRUSH`, `CryptaPath`, `PathFinder` and `TBD`.  
+**CRHS** consists of four libraries: `CRUSH`, `CryptaPath`, `PathFinder` and `SOCCs`.  
 
-This section will be completed as soon as the port of PathFinder is complete.
+This section will be completed as soon as possible.
 
+The four libraries are:
+- [`CRUSH`](crush): Contains the core functionality of `CRHS equations` and `SOCs`.
+- [`CryptaPath`](CryptaPath): The original library showcasing algebraic cryptanalysis using`SOCs`. See [CryptaPath](https://doi.org/10.1007/978-3-030-81652-0_9) [1]
+- [`PathFinder`](pathfinder): The core logic behind the search for good linear and differential hulls using `CRHS equations` 
+and `SOCs`.
+- [`SOCCS`](soccs): Adapts the ciphers and trait found in [CryptaGraph](https://eprint.iacr.org/2018/764.pdf) [3]
+to be used with `PathFinder` for linear and differential hull search using `CRHS equations` and `SOCs`.
+
+## Current state
+Unfortunately, the current state of the libraries are not up to standards. The new libraries were developed as prototypes,
+meaning that speed of implementation was favoured over documentation and down payment of technical dept. This is the sad
+reality of writing code as part of a Ph.D. theis.
+
+You will therefore find that the documentation is not at the standard I would like it to be, and that the code is more
+messy than I'd like to admit. As time passes, I'd like to do something more about this. Unfortunately, I'm unable to make
+any commitments as to how often improvements will happen.
+
+However, if you have questions, please email me at johnpetter@simula.no, and I will try to get back to you as soon as
+possible.
 
 ## References
 
-1) Indrøy, John Petter, Nicolas Costes, and Håvard Raddum. "Boolean Polynomials, BDDs and CRHS Equations-Connecting the
+1) John Petter Indrøy, Nicolas Costes, and Håvard Raddum. "Boolean Polynomials, BDDs and CRHS Equations-Connecting the
  Dots with CryptaPath." International Conference on Selected Areas in Cryptography. Springer, Cham, 2020.
 2) Akers, Sheldon B. "Binary decision diagrams." IEEE Transactions on computers 27.06 (1978): 509-516.
+3) Mathias Hall-Andersen and Philip S. Vejre. "Generating graphs packed with paths", FSE 2019.
+(Cryptology ePrint Archive 2018)

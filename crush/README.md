@@ -112,7 +112,7 @@ Crush is licensed under the MIT License.
 
 **WARNING:** This library was developed in an academic context and no part of this code should be use in any production system.
 
-<!---
+
 ## Overview
 
 This library implements a way of solving system of equations over GF(2) using Compressed Right-Hand Side equations 
@@ -123,9 +123,9 @@ For this we provide 3 rust modules that can be used together :
 - [`soc`](src/soc): Rust module that provides a memory representation of a system of CRHS equations and the APIs to
 mutate it safely with the available operations.
 - [`solver`](src/solver): Rust module that provides a way of defining Solvers: Structures holding the strategy which
-will use the [`soc`](soc) APIs to absorb all linear dependencies inside a System of CRHS equations (`SOC`), making every
+will use the [`soc`](src/soc) APIs to absorb all linear dependencies inside a System of CRHS equations (`SOC`), making every
 remaining path a valid solution.
----> 
+
 
 ## Build guide
 
