@@ -58,6 +58,39 @@ unable to make any commitments as to how often improvements will happen.
 However, if you have questions, please email me at johnpetter@simula.no, and I will try to get back to you as soon as
 possible.
 
+## Build guide and usage
+
+We target the stable channel of Rust.
+
+To build you have first to install Rust (you can follow the guide from the [`official website`](https://www.rust-lang.org/tools/install).
+If you already have Rust installed make sure that your version is at least 1.38 as we make extensive usage of std::HashMap and it was greatly improved on that patch.
+
+You can then run:
+```bash
+git clone https://github.com/Simula-UiB/CRHS.git
+cd CRHS
+cargo build
+```
+This will build all the libraries in the workspace. To build a specific library only add the `-p` flag followed 
+by the library name.  
+For example, in order to build the `CRUSH` library, write
+
+```bash
+cargo build -p crush
+```
+
+To run any of the binaries (found in `PathFinder` and `SOCCS`), replace `build` with `run`, and then the name of the 
+binary. Note that the binaries expect additional flags with the command, see the respective libraries' README for more
+info.
+
+---
+You can run the unit tests using:
+
+```bash
+cargo test
+``` 
+
+
 ## References
 
 1) John Petter Indrøy, Nicolas Costes, and Håvard Raddum. "Boolean Polynomials, BDDs and CRHS Equations-Connecting the
