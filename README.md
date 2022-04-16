@@ -32,11 +32,11 @@ CryptaPath is licensed under the MIT License.
 * MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)
 
 
-## Overview
+## Workspace Overview
 
 **CRHS** consists of four libraries: `CRUSH`, `CryptaPath`, `PathFinder` and `SOCCs`.  
 
-This section will be completed as soon as possible.
+The CRHS workspace consists of four libraries, each one having their own readme.
 
 The four libraries are:
 - [`CRUSH`](crush): Contains the core functionality of `CRHS equations` and `SOCs`.
@@ -47,13 +47,13 @@ and `SOCs`.
 to be used with `PathFinder` for linear and differential hull search using `CRHS equations` and `SOCs`.
 
 ## Current state
-Unfortunately, the current state of the libraries are not up to standards. The new libraries were developed as prototypes,
-meaning that speed of implementation was favoured over documentation and down payment of technical dept. This is the sad
-reality of writing code as part of a Ph.D. theis.
+Unfortunately, the current state of all the code written as part of the `SOCCs` project is not up to standards.
+The new libraries (PathFinder and SOCCS) were developed as prototypes, meaning that speed of implementation was favoured
+over documentation and down-payment of technical dept. This is the sad reality of writing code as part of a Ph.D. theis.
 
 You will therefore find that the documentation is not at the standard I would like it to be, and that the code is more
-messy than I'd like to admit. As time passes, I'd like to do something more about this. Unfortunately, I'm unable to make
-any commitments as to how often improvements will happen.
+messy than I'd like to admit. As time passes, I hope to be able to work gradually on these issues. Unfortunately, I'm 
+unable to make any commitments as to how often improvements will happen.
 
 However, if you have questions, please email me at johnpetter@simula.no, and I will try to get back to you as soon as
 possible.
