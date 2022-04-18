@@ -79,9 +79,9 @@ For example, in order to build the `CRUSH` library, write
 cargo build -p crush
 ```
 
-To run any of the binaries (found in `PathFinder` and `SOCCS`), replace `build` with `run`, and then the name of the 
+To run any of the binaries (found in `PathFinder` and `SOCCS`), replace `build` with `run`, followed by the name of the 
 binary. Note that the binaries expect additional flags with the command, see the respective libraries' README for more
-info.
+on that.
 
 ---
 You can run the unit tests using:
@@ -90,6 +90,7 @@ You can run the unit tests using:
 cargo test
 ``` 
 
+The `-p` switch works with the test command as well.
 
 ## References
 
