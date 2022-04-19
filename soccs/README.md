@@ -64,6 +64,24 @@ will print the help text for the differential analysis.
 
 *Note that there may be different flags and options available to the different modes.*
 
+---
+*Some things to note:*
+- Any cipher listed in the function `name_to_cipher` (found in soccs\src\dl\cg_original\cipher\mod.rs) is 
+ accepted following the `--cipher` option.
+- Analysing a cipher is a three-step process: 
+  1) First a System of CRHS equations is built from the cipher spec.
+  2) The SOC is solved, pruning when necessary.
+  3) The solved SOC is then analysed for differential\linear trails\hulls.
+- Step 2) may be very time-consuming. It is therefore possible to store the solved SOC to file, for later reuse. 
+- Step 3) may load a solved SOC from a file, instead of first performing step 1) and 2)
+- The process of solving a SOC is memory consuming. A threshold is therefore needed, for when the pruning process
+ should kick in. This is defined as the maximum number of nodes a SOC may contain before pruning. The CryptaPath
+ paper talks more about this, except how to set this threshold. Unfortunately, we don't have a good, reliable way
+ to set this threshold yet. Simply put, it should be based on available RAM, where RAM / memory_per_node = threshold.   
+ Our method for setting the threshold is fairly unscientific: Start small, and make a note of the RAM consumption.
+ If you still have RAM available, you may consider increasing the threshold.
+- *Note that ciphers with larger S-boxes requires a lower threshold than ciphers with smaller S-boxes.*
+
 ## Plan for the future
 
 - Clean and simplify the logic.
