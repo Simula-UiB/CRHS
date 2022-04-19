@@ -34,20 +34,17 @@ CryptaPath is licensed under the MIT License.
 
 ## Workspace Overview
 
-**CRHS** consists of four libraries: `CRUSH`, `CryptaPath`, `PathFinder` and `SOCCs`.  
-
-The CRHS workspace consists of four libraries, each one having their own readme.
-
+The CRHS workspace consists of four libraries, each one having their own readme.   
 The four libraries are:
-- [`CRUSH`](crush): Contains the core functionality of `CRHS equations` and `SOCs`.
-- [`CryptaPath`](CryptaPath): The original library showcasing algebraic cryptanalysis using`SOCs`. See [CryptaPath](https://doi.org/10.1007/978-3-030-81652-0_9) [1]
+- [`CRUSH`](crush): Contains the core functionality of `CRHS equations` and Systems of CRHS equations (`SOCs`).
+- [`CryptaPath`](CryptaPath): The original library showcasing algebraic cryptanalysis using`SOCs`. See [CryptaPath](https://doi.org/10.1007/978-3-030-81652-0_9) [1].
 - [`PathFinder`](pathfinder): The core logic behind the search for good linear and differential hulls using `CRHS equations` 
 and `SOCs`.
 - [`SOCCS`](soccs): Adapts the ciphers and trait found in [CryptaGraph](https://eprint.iacr.org/2018/764.pdf) [3]
 to be used with `PathFinder` for linear and differential hull search using `CRHS equations` and `SOCs`.
 
 ## Current state
-Unfortunately, the current state of all the code written as part of the `SOCCs` project is not up to standards.
+Unfortunately, the current state of all the code written as part of the `PathFinder` project is not up to standards.
 The new libraries (PathFinder and SOCCS) were developed as prototypes, meaning that speed of implementation was favoured
 over documentation and down-payment of technical dept. This is the sad reality of writing code as part of a Ph.D. theis.
 

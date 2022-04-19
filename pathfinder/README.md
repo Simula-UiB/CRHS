@@ -10,7 +10,8 @@ __PathFinder__ (__PF__) is where the "post-processing" logic of a resolved diffe
 resides. This library contains the functionality to estimate the best input-output pair to use
 as basis for a hull, and then to calculate the exact values of the hull based on the paths contained in
 the SOC. Note that due to the pruning process, not all possible paths may be present for the post-processing.
-
+See the [PathFinder paper](https://doi.org/10.1007/978-3-030-81652-0_9) for more.
+---
 **WARNING:** This library was developed in an academic context and no part of
 this code should be use in any production system.
 
@@ -18,16 +19,16 @@ this code should be use in any production system.
 TBI
 
 ## Licence
-__PF__ is licensed under the MIT License.
+__PathFinder__ is licensed under the MIT License.
 
 * MIT license ([LICENSE](../LICENSE) or http://opensource.org/licenses/MIT)
 
 ## How to use
-
+The easiest way to use PF is through the `SOCCS` library/binary.
 
 ## Plan for the future
 
-- Streamline logging and reporting of results
+- Streamline logging and reporting of results.
 - Implement error handling?
 - Apply Clippy and Rustfmt
 - (Research topic:) Add a second pass for the hull generation: Today's logic will include all possible
