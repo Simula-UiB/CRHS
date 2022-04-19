@@ -107,7 +107,7 @@ pub fn bits_from_binary_string(b_str: &str) -> Vec<Bit> {
         .map(|char| match char {
             '0' => bit!(false),
             '1' => bit!(true),
-            _ => panic!(format!("{} this is not a binary string", b_str)),
+            _ => panic!("{} this is not a binary string", b_str),
         })
         .collect();
     out_bits

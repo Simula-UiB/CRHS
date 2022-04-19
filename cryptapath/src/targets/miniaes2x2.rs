@@ -41,7 +41,7 @@ impl MiniAES2x2 {
     }
 
     fn sub_bytes(&self, in_bits: Vec<Bit>) -> Vec<Bit> {
-        assert!(in_bits.len() == self.message_length);
+        assert_eq!(in_bits.len(), self.message_length);
         let mut out_bits = Vec::with_capacity(self.message_length);
         for i in 0..4 {
             out_bits.append(&mut self.sbox.apply(in_bits[i * 8..(i + 1) * 8].to_vec()));
@@ -49,8 +49,8 @@ impl MiniAES2x2 {
         out_bits
     }
 
-    fn shift_rows(&self, mut in_bits: Vec<Bit>) -> Vec<Bit> {
-        assert!(in_bits.len() == self.message_length);
+    fn shift_rows(&self, in_bits: Vec<Bit>) -> Vec<Bit> {
+        assert_eq!(in_bits.len(), self.message_length);
         let mut out_bits = in_bits[0..16].to_vec();
         out_bits.append(&mut in_bits[24..32].to_vec());
         out_bits.append(&mut in_bits[16..24].to_vec());
@@ -102,12 +102,12 @@ impl MiniAES2x2 {
     }
 
     fn add_round_key(&self, in_bits: Vec<Bit>, round_key: Vec<Bit>) -> Vec<Bit> {
-        assert!(in_bits.len() == self.message_length);
-        assert!(round_key.len() == self.message_length);
+        assert_eq!(in_bits.len(), self.message_length);
+        assert_eq!(round_key.len(), self.message_length);
         bit_vector_xoring(in_bits, round_key)
     }
 
-    fn make_round_keys(&self, mut key: Vec<Bit>) -> Vec<Vec<Bit>> {
+    fn make_round_keys(&self, key: Vec<Bit>) -> Vec<Vec<Bit>> {
         assert_eq!(key.len(), self.key_length);
         let mut round_keys = Vec::with_capacity(self.n_rounds);
         let round_constants = vec![
@@ -169,12 +169,12 @@ impl Cipher for MiniAES2x2 {
         self.message_length
     }
 
-    fn key_length(&self) -> usize {
-        self.key_length
-    }
-
     fn n_rounds(&self) -> usize {
         self.n_rounds
+    }
+
+    fn key_length(&self) -> usize {
+        self.key_length
     }
 
     fn sbox(&self) -> Sbox {

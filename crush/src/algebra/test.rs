@@ -34,7 +34,7 @@ fn transpose_test() {
 
 #[test]
 fn identity_test() {
-    let id = algebra::identity(4, 4);
+    let id = algebra::identity(4);
     let expected = matrix![vec![
         vob![true, false, false, false],
         vob![false, true, false, false],

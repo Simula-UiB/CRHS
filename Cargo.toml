@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+	"crush",
+	"cryptapath",
+	"pathfinder",
+	"soccs",
+]

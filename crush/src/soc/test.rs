@@ -1,5 +1,6 @@
-use crate::soc::{utils, Id};
 use std::io::Error;
+
+use crate::soc::{Id, utils};
 
 #[test]
 fn swap_test() {
@@ -62,13 +63,13 @@ fn drop_test() {
 #[test]
 fn count_path_test() {
     let bdd = bdd!(5;0;[("1+2",[(1;2,3)]);("3+2",[(2;4,5);(3;4,0)]);("0+4",[(4;0,6);(5;6,0)]);("",[(6;0,0)])]);
-    assert_eq!(bdd.count_paths(), 3);
+    assert_eq!(bdd.count_paths(), 3_usize.into());
 
     let bdd = bdd!(5;0;[("0+4",[(4;6,6)]);("",[(6;0,0)])]);
-    assert_eq!(bdd.count_paths(), 2);
+    assert_eq!(bdd.count_paths(), 2_usize.into());
 
     let bdd = bdd!(5;0;[("",[(6;0,0)])]);
-    assert_eq!(bdd.count_paths(), 0);
+    assert_eq!(bdd.count_paths(), 0_usize.into());
 }
 
 #[test]

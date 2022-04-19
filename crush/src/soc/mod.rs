@@ -2,24 +2,31 @@
 //! binary decision diagram (Bdd) and exposing the apis to absorb all the linear dependencies
 //! inside to solve it.
 
+use std::fmt::{self, Display};
+use std::ops::Deref;
+
+pub use node::Node;
+
 pub mod bdd;
 mod level;
 mod node;
 pub mod system;
 pub mod utils;
-
-use std::fmt::{self, Display};
-use std::ops::Deref;
-
 #[macro_export]
 /// Macro to generate bdds :
 ///
 /// ### Example :
 ///
-/// ```text.
+/// ```
+/// # #[macro_use] extern crate crush;
+/// use nom;
+/// use crush::soc::Id;
+///
 /// let bdd = bdd!(5;0;[("1+2",[(1;2,3)]);("3+2",[(2;0,4);(3;4,0)]);("0+2",[(4;0,0)])]);
 /// ```
-/// will create bdd with 5 variable lhs, id 0 with 3 levels defined by lhs equations and arrays of nodes
+/// will create bdd with 5 variable lhs, id 0 with 3 levels defined by lhs equations and arrays of nodes.
+///
+/// ! Depends on the "nom" crate. (See Cargo.toml)
 macro_rules! bdd {
     (
         $nvar:expr;
@@ -36,7 +43,7 @@ macro_rules! bdd {
             ;*
         ]
     ) => {
-        $crate::soc::utils::build_bdd_from_spec(&mut utils::BddSpec::new(Id::new($id),
+        $crate::soc::utils::build_bdd_from_spec(&mut $crate::soc::utils::BddSpec::new(Id::new($id),
         [$($crate::soc::utils::LevelSpec::new($crate::soc::utils::vars(nom::types::CompleteStr(&$lhs)).expect("wrong format for lhs").1, [
             $($crate::soc::utils::NodeSpec::new(Id::new($id_node), Id::new($e0), Id::new($e1)))
             ,*].to_vec()))

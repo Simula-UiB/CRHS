@@ -10,15 +10,18 @@
 //! All ids are supposed to be unique in the entirity of the system. The Hashmap uses
 //! AHash as its default hasher for speedup over SipHash.
 
-use crate::soc::{node::Node, Id};
-use std::fmt;
 extern crate vob;
-use crate::{AHashMap, AHashSet};
+
 use std::collections::hash_map::{Iter, IterMut};
+use std::fmt;
+
 use vob::{IterSetBits, Vob};
 
+use crate::{AHashMap, AHashSet};
+use crate::soc::{Id, node::Node};
+
 /// A level inside a Binary Decision Diagram
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Level {
     nodes: AHashMap<Id, Node>,
     lhs: Vob,
@@ -38,9 +41,19 @@ impl Level {
     pub fn set_lhs(&mut self, vars: Vec<usize>, var_len: usize) {
         self.lhs.resize(var_len, false);
         for var in vars.iter() {
+            // TODO, to me, this looks like the value set will be the opposite of what was already
+            // at that index. Meaning it can end up being 0, despite the fn comments saying
+            // that it should be 1. What am I missing?
             self.lhs.set(*var, !self.lhs.get(*var).unwrap());
         }
     }
+
+    /// Set 'self.lhs' to the given 'Vob', discarding the old one.
+    pub fn set_lhs_from_vob(&mut self, lhs: Vob) {
+        // Need to do a naming convention discussion at some point
+        self.lhs = lhs;
+    }
+
 
     /// Return a clone of `lhs`.
     #[inline]
@@ -104,6 +117,11 @@ impl Level {
     #[inline]
     pub fn get_mut_nodes(&mut self) -> &mut AHashMap<Id, Node> {
         &mut self.nodes
+    }
+
+    /// Returns a reference to the node
+    pub fn get_node(&self, node_id: &Id) -> Option<&Node> {
+        self.nodes.get(node_id)
     }
 
     /// Get the number of nodes of the level.
