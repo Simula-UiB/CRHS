@@ -4,7 +4,7 @@
 
 use std::collections::HashSet;
 use std::fs::File;
-use std::io::{BufReader, BufWriter, Read, stdout, Write};
+use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -322,7 +322,7 @@ pub fn parse_system_spec_from_file(path: &PathBuf) -> SystemSpec {
     result.1
 }
 
-/// Write .dot language representation of the given bdd to a file at path
+/// Write `.dot` language representation of the given bdd to a file at path
 pub fn print_bdd_to_graphviz(bdd: &Bdd, path:&PathBuf) {
     let write_file = File::create(path).unwrap();
     let mut writer = BufWriter::new(&write_file);
@@ -378,50 +378,34 @@ pub fn print_system_to_file(system: &System, path: &PathBuf){
 /// The output format is PDF.
 ///
 /// **NOTE:** Requires that `GraphViz` is installed!
+/// Tested on a Windows with Graphviz 3.0.0
 ///
 /// **WARNING!** The resulting output file may be very large!
-//FIXME unstable, does not always print...
 pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) {
     use std::process::{Command, Stdio};
-    use std::fs::OpenOptions;
-    use std::thread;
-    use std::time::Duration;
 
     let mut args = vec!["-Tpdf",];
     let mut path = path.clone();
     path.set_extension("pdf");
 
-    println!("Path: {}", path.display());
-    let opath = format!("-o{}", path.display().to_string());
-    args.push(&opath);
+    let out_path = format!("-o{}", path.as_os_str().to_str().unwrap());
+    args.push(&out_path);
 
-    OpenOptions::new().write(true).create(true).open(&path).unwrap();
-    println!("Args: {:?}", &args);
 
     let mut dot = Command::new("dot")
         .args(&args)
         .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
         .spawn()
-        .expect("failed to execute process");
+        .expect("failed to draw the shard to PDF.");
 
     {
-        let stdin = dot.stdin.as_mut().expect("Failed to open stdin");
-        let mut writer = BufWriter::new(stdout());
-
+        let child_in = dot.stdin.as_mut().expect("Failed to open child stdin");
+        let mut writer = BufWriter::new(child_in);
 
         to_dot_format(&shard, &mut writer);
-        stdin.write(writer.buffer()).expect("Failed to write to stdin");
-
-        while dot.try_wait().unwrap().is_none() {
-            println!("Sleeping...");
-            thread::sleep(Duration::from_millis(2000));
-        };
-
-        println!("Done writing!");
-
+        writer.flush().unwrap();
     }
-
+    dot.wait().unwrap();
 
 }
 
@@ -429,7 +413,7 @@ pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) {
 pub fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
 
     writeln!(writer, "digraph \"DD\" {{").unwrap();
-    writeln!(writer, "size = \"7.5,10\"").unwrap();
+    writeln!(writer, "size = \"7.5,10\"").unwrap(); // FIXME? Size looks to be hardcoded. Intentional?
     writeln!(writer, "center = true;").unwrap();
     writeln!(writer, "edge [dir = none];").unwrap();
     writeln!(writer, "{{ node [shape = plaintext];").unwrap();
