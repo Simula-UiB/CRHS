@@ -324,7 +324,7 @@ pub fn parse_system_spec_from_file(path: &PathBuf) -> SystemSpec {
 }
 
 /// Write `.dot` language representation of the given bdd to a file at path
-pub fn print_bdd_to_graphviz(bdd: &Bdd, path:&PathBuf) {
+pub fn print_bdd_to_dot_format(bdd: &Bdd, path:&PathBuf) {
     let write_file = File::create(path).unwrap();
     let mut writer = BufWriter::new(&write_file);
 
@@ -425,8 +425,8 @@ pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) -> Child {
     dot
 }
 
-/// Write .dot language representation of the given bdd to a file at path
-pub fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
+/// Write .dot language representation of the given shard into `writer`.
+fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
     // Setup
     let num_levels = shard.iter_levels().count();
 
