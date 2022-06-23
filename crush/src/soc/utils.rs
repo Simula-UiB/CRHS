@@ -427,56 +427,78 @@ pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) -> Child {
 
 /// Write .dot language representation of the given bdd to a file at path
 pub fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
+    // Setup
+    let num_levels = shard.iter_levels().count();
 
-    writeln!(writer, "digraph \"DD\" {{").unwrap();
+    // Metadata:
+    writeln!(writer, "digraph \"DD\" {{").unwrap(); // I believe DD is just an ID.
     writeln!(writer, "center = true;").unwrap();
-    writeln!(writer, "edge [dir = none];").unwrap();
-    writeln!(writer, "{{ node [shape = plaintext];").unwrap();
-    writeln!(writer, "edge [style = invis];").unwrap();
-    writeln!(writer, "\"CONST NODES\" [style = invis];").unwrap();
+    writeln!(writer, "edge [dir = none];").unwrap(); // No arrowheads on the arrows
+
+    // Writing the LHS of the graph
+    writeln!(writer, "{{ node [shape = plaintext];").unwrap(); // No "bubble" around the algebraic expression
+    writeln!(writer, "edge [style = invis];").unwrap(); // Draw no edges
+    writeln!(writer, "\"CONST NODES\" [style = invis];").unwrap(); // End node? Invisible
+
     for (i,level) in shard.iter_levels().enumerate() {
-        write!(writer, "\"{}. ",i).unwrap();
-        if level.iter_set_lhs().count() == 0 {
+        write!(writer, "\"{}. ",i).unwrap(); // Line/row number
+        if level.iter_set_lhs().count() == 0 { // No variable is set
+            write!(writer, "0").unwrap();
+        } else {
+            for (j, bit) in level.iter_set_lhs().enumerate() {
+                if j > 0 {
+                    write!(writer, " + ").unwrap();
+                }
+                write!(writer, "x{}", bit).unwrap();
+            }
+        }
+        write!(writer, "\" -> ").unwrap();
+        if i == num_levels - 2 { // Skip terminal lvl + started at index 0 ==> -2 ?
+            break;
+        }
+    }
+    writeln!(writer, "\"CONST NODES\";\n}}").unwrap();
+
+    // Writing the RHS of the graph
+    for (i,level) in shard.iter_levels().enumerate() {
+        write!(writer, "{{ rank = same; ").unwrap(); // Tell GraphViz that these are on the same level
+        write!(writer, "\"{}. ", i).unwrap(); // Line/row/"rank" number
+
+        // I'm a bit unsure of the purpose of this if-else. I understand what it does, but not why.
+        // Theory: Links these to the rank above w/same "ID"? Printed dot file both support and object
+        // to this theory, and hard to find something in the GV doc.
+        if level.iter_set_lhs().count() == 0 { // No variable is set
             write!(writer, "0").unwrap();
         } else {
             for (j,bit) in level.iter_set_lhs().enumerate() {
                 if j > 0 {
                     write!(writer, " + ").unwrap();
                 }
-                write!(writer, "x{}",bit).unwrap();
-            }
-        }
-        write!(writer, "\" -> ").unwrap();
-        if i == shard.iter_levels().count()-2{
-            break;
-        }
-    }
-    writeln!(writer, "\"CONST NODES\";\n}}").unwrap();
-    for (i,level) in shard.iter_levels().enumerate() {
-        write!(writer, "{{ rank = same; \"").unwrap();
-        if level.iter_set_lhs().count() == 0 {
-            write!(writer, "{}. 0",i).unwrap();
-        } else {
-            for (j,bit) in level.iter_set_lhs().enumerate() {
-                if j > 0 {
-                    write!(writer, " + ").unwrap();
-                }
-                write!(writer, "{}. x{}",i,bit).unwrap();
+                write!(writer, "x{}", bit).unwrap();
             }
         }
         writeln!(writer, "\";").unwrap();
+
+        // Add node to rank. (In GraphViz: level == rank)
         for (id,_) in level.iter_nodes(){
-            writeln!(writer, "\"{}\";",*id).unwrap();
+            writeln!(writer, "\"{}\";", *id).unwrap();
         }
-        writeln!(writer, "}}").unwrap();
-        if i == shard.iter_levels().count()-2{
+        writeln!(writer, "}}").unwrap(); // Rank (/level) done
+
+        if i == num_levels - 2 { // Skip terminal lvl + started at index 0 ==> -2 ?
             break;
         }
     }
-    writeln!(writer, "{{ rank = same; \"CONST NODES\";").unwrap();
-    writeln!(writer, "{{ node [shape = box]; \"{}\";",*shard.iter_levels().last().unwrap().iter_nodes().last().unwrap().0).unwrap();
+
+    // Add terminal node, set node shape to box
+    writeln!(writer, "{{ rank = same; \"CONST NODES\";").unwrap(); //
+    writeln!(writer, "{{ node [shape = box]; \"{}\";", *shard.iter_levels().last().unwrap()
+        .iter_nodes().last().unwrap()
+        .0).unwrap();
     writeln!(writer, "}}").unwrap();
     writeln!(writer, "}}").unwrap();
+
+    // Add edges between relevant nodes, including correct style
     for level in shard.iter_levels() {
         for (id,node) in level.iter_nodes() {
             if let Some(e0) = node.get_e0() {
@@ -487,7 +509,10 @@ pub fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
             }
         }
     }
-    writeln!(writer, "\"{}\" [label = \"T\"];",*shard.iter_levels().last().unwrap().iter_nodes().last().unwrap().0).unwrap();
+    // Label the terminal node as the True node
+    writeln!(writer, "\"{}\" [label = \"T\"];", *shard.iter_levels().last().unwrap()
+        .iter_nodes().last().unwrap()
+        .0).unwrap();
     writeln!(writer, "}}").unwrap();
 }
 
