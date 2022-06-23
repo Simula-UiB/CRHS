@@ -6,6 +6,7 @@ use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
+use std::process::Child;
 use std::str::FromStr;
 
 use nom::digit;
@@ -377,11 +378,27 @@ pub fn print_system_to_file(system: &System, path: &PathBuf){
 /// Draw a graph representation of the Shard, using GraphViz.
 /// The output format is PDF.
 ///
+/// It is possible to use another function to instead output the dot-file of the shard. This allows
+/// the user to draw using GraphViz as desired. This function is intended as a easy-to-use way
+/// of generating snapshots of state. However, be mindful that GraphViz may use quite some time to
+/// finish drawing the shard, even after this function returns the handle to the GraphViz process.
+/// It is therefore *highly* recommended to always  use`.wait` on the handle to ensure that the
+/// drawing process is complete, before exiting the main thread!
+/// By returning the child handle, the caller is now free to decide when to wait for GraphViz to
+/// finish drawing.
+/// ---
 /// **NOTE:** Requires that `GraphViz` is installed!
 /// Tested on a Windows with Graphviz 3.0.0
 ///
 /// **WARNING!** The resulting output file may be very large!
-pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) {
+/// **WARNING** Failing to wait on the child process may lead to the failure of drawing the shard
+/// to file.
+/// **NOTE 1:** "Large" shards will take time to write to file. Patience is advised.
+/// **NOTE 2:** When opening the pdf based on a "large" shard, it may initially appear empty.
+/// When this is the case, it is because it is so zoomed out that nothing of the drawing is visible.
+/// ("Large" is hard to quantify, but my test file is only slightly more than 2mb large, yet took
+/// many minutes for GraphViz to write to file. (Output size is about 6mb)).
+pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) -> Child {
     use std::process::{Command, Stdio};
 
     let mut args = vec!["-Tpdf",];
@@ -405,8 +422,7 @@ pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) {
         to_dot_format(&shard, &mut writer);
         writer.flush().unwrap();
     }
-    dot.wait().unwrap();
-
+    dot
 }
 
 /// Write .dot language representation of the given bdd to a file at path
