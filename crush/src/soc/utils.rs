@@ -429,7 +429,6 @@ pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) -> Child {
 pub fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
 
     writeln!(writer, "digraph \"DD\" {{").unwrap();
-    writeln!(writer, "size = \"7.5,10\"").unwrap(); // FIXME? Size looks to be hardcoded. Intentional?
     writeln!(writer, "center = true;").unwrap();
     writeln!(writer, "edge [dir = none];").unwrap();
     writeln!(writer, "{{ node [shape = plaintext];").unwrap();
