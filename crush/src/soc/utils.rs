@@ -395,9 +395,11 @@ pub fn print_system_to_file(system: &System, path: &PathBuf){
 /// to file.
 /// **NOTE 1:** "Large" shards will take time to write to file. Patience is advised.
 /// **NOTE 2:** When opening the pdf based on a "large" shard, it may initially appear empty.
-/// When this is the case, it is because it is so zoomed out that nothing of the drawing is visible.
+/// When this is the case, it may be because it takes some time to load, or that you are viewing an
+/// empty part of the drawing. Scrolling or zooming in/out may help.
 /// ("Large" is hard to quantify, but my test file is only slightly more than 2mb large, yet took
-/// many minutes for GraphViz to write to file. (Output size is about 6mb)).
+/// many minutes for GraphViz to write to file. (Output size is about 6mb, GraphViz spent about
+/// 30 min to draw...)).
 pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) -> Child {
     use std::process::{Command, Stdio};
 
@@ -481,7 +483,8 @@ fn to_dot_format<W: Write> (shard: &Bdd, writer: &mut BufWriter<W>) {
 
         // Add node to rank. (In GraphViz: level == rank)
         for (id,_) in level.iter_nodes(){
-            writeln!(writer, "\"{}\";", *id).unwrap();
+            // Remove the ID by setting label = "", and reducing drawing size by making the node shape to a point.
+            writeln!(writer, "\"{}\" [label = \"\"; shape = point; width = 0.06];", *id).unwrap();
         }
         writeln!(writer, "}}").unwrap(); // Rank (/level) done
 
