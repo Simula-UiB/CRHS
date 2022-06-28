@@ -418,11 +418,14 @@ pub fn draw_shard_as_pdf(shard: &Bdd, path:&PathBuf) -> Child {
         .expect("failed to draw the shard to PDF.");
 
     {
-        let child_in = dot.stdin.as_mut().expect("Failed to open child stdin");
+        let child_in = dot.stdin.take().expect("Child stdin not captured");
         let mut writer = BufWriter::new(child_in);
 
         to_dot_format(&shard, &mut writer);
         writer.flush().unwrap();
+        // Child stdin is dropped, closing the child stdin's underlying file handle. This will
+        // essentially give an "EOF" to GraphViz, making it no longer wait on user input and thus
+        // start processing/drawing the given data.
     }
     dot
 }
